@@ -5,14 +5,14 @@ import * as THREE from "three/webgpu";
 
 class Conf {
     gui = null;
-    maxParticles = 8192 * 16;
-    particles = 8192 * 4;
+    maxParticles = 8192 * 100;
+    particles = 8192 * 100;
 
     bloom = true;
 
     run = true;
-    noise = 1.0;
-    speed = 1;
+    noise = 0.5;
+    speed = 0.5;
     stiffness = 3.;
     restDensity = 1.;
     density = 1;
@@ -21,14 +21,14 @@ class Conf {
     gravitySensorReading = new THREE.Vector3();
     accelerometerReading = new THREE.Vector3();
     actualSize = 1;
-    size = 1;
+    size = 0.5;
 
     points = false;
 
     constructor(info) {
         if (mobile()) {
-            this.maxParticles = 8192 * 8;
-            this.particles = 4096;
+            this.maxParticles = 8192 * 100;
+            this.particles = 8192 * 100;
         }
         this.updateParams();
 

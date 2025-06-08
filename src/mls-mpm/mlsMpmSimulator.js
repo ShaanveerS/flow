@@ -278,9 +278,11 @@ class mlsMpmSimulator {
                 particleVelocity.addAssign(this.uniforms.gravity.mul(this.uniforms.dt));
             });
 
+            const loopDuration = float(20.0); // Already defined for color, used here for noise too
+            const loopedTime = time.mod(loopDuration); // time will now be in the range [0, loopDuration)
 
-            const noise = triNoise3Dvec(particlePosition.mul(0.015), time, 0.11).sub(0.285).normalize().mul(0.28).toVar();
-            particleVelocity.subAssign(noise.mul(this.uniforms.noise).mul(this.uniforms.dt));
+            const noiseVec = triNoise3Dvec(particlePosition.mul(0.015), loopedTime, 0.11).sub(0.285).normalize().mul(0.28).toVar();
+            particleVelocity.subAssign(noiseVec.mul(this.uniforms.noise).mul(this.uniforms.dt));
 
             const cellIndex =  ivec3(particlePosition).sub(1).toConst("cellIndex");
             const cellDiff = particlePosition.fract().sub(0.5).toConst("cellDiff");
@@ -338,7 +340,26 @@ class mlsMpmSimulator {
             const direction = this.particleBuffer.element(instanceIndex).get('direction');
             direction.assign(mix(direction,particleVelocity, 0.1));
 
-            const color = hsvtorgb(vec3(particleDensity.div(this.uniforms.restDensity).mul(0.25).add(time.mul(0.05)), particleVelocity.length().mul(0.5).clamp(0,1).mul(0.3).add(0.7), force.mul(0.3).add(0.7)));
+            const densityHueFactor = particleDensity.div(this.uniforms.restDensity).mul(0.25);
+            
+            // This factor determines the "speed" of the hue change over the loop.
+            // loopedTime (0-20s) * timeRate (0.05) gives a 0-1 value over the loop.
+            const timeRate = float(0.05);
+            const timeBasedHueInput = loopedTime.mul(timeRate); // Ranges 0..1 over loopDuration
+
+            // Create a ping-pong factor (0 -> 1 -> 0) as timeBasedHueInput goes 0 -> 1
+            const normalizedPingPongFactor = timeBasedHueInput.mul(2.0).sub(1.0).abs().oneMinus();
+
+            const HUE_ANIMATION_WIDTH = float(0.4); // The width of the hue range for time-based animation (e.g., 0.2 means colors will shift over a 20% slice of the hue wheel)
+            const HUE_ANIMATION_OFFSET = float(0.4); // The starting point of the hue animation (e.g., 0.5 for blue)
+
+            // The time-driven part of the hue will now oscillate.
+            // It will go from HUE_ANIMATION_OFFSET to (HUE_ANIMATION_OFFSET + HUE_ANIMATION_WIDTH) and back.
+            const animatedHueComponent = HUE_ANIMATION_OFFSET.add(normalizedPingPongFactor.mul(HUE_ANIMATION_WIDTH));
+
+            const finalHue = densityHueFactor.add(animatedHueComponent).mod(1.0); // .mod(1.0) to keep hue in 0-1 range
+
+            const color = hsvtorgb(vec3(finalHue, particleVelocity.length().mul(0.5).clamp(0,1).mul(0.3).add(0.7), force.mul(0.3).add(0.7)));
             this.particleBuffer.element(instanceIndex).get('color').assign(color);
         })().compute(1);
     }

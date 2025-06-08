@@ -23,8 +23,8 @@ class PointRenderer {
         const s = (1/64);
         this.object.position.set(-32.0*s,0,0);
         this.object.scale.set(s,s,s);
-        this.object.castShadow = true;
-        this.object.receiveShadow = true;
+        this.object.castShadow = false;
+        this.object.receiveShadow = false;
     }
 
     update() {

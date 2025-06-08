@@ -64,18 +64,21 @@ class App {
 
         await progressCallback(0.1)
 
-        const hdriTexture = await loadHdr(hdri);
+        // const hdriTexture = await loadHdr(hdri);
 
-        this.scene.background = hdriTexture; //bgNode.mul(2);
-        this.scene.backgroundRotation = new THREE.Euler(0,2.15,0);
-        this.scene.environment = hdriTexture;
-        this.scene.environmentRotation = new THREE.Euler(0,-2.15,0);
-        this.scene.environmentIntensity = 0.5;
+        // this.scene.background = hdriTexture; //bgNode.mul(2);
+        // this.scene.backgroundRotation = new THREE.Euler(0,2.15,0);
+        // this.scene.environment = hdriTexture;
+        // this.scene.environmentRotation = new THREE.Euler(0,-2.15,0);
+        // this.scene.environmentIntensity = 0.5;
+        this.scene.background = new THREE.Color(0x000000); // Set background to black
+        this.scene.environment = null; // Remove HDRI environment lighting
+
         //this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 0.66;
 
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.shadowMap.enabled = false;
+        //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         await progressCallback(0.5)
 
@@ -91,6 +94,7 @@ class App {
 
         const backgroundGeometry = new BackgroundGeometry();
         await backgroundGeometry.init();
+        backgroundGeometry.object.visible = false; // Make the background geometry invisible
         this.scene.add(backgroundGeometry.object);
 
 
